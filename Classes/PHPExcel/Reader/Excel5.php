@@ -65,6 +65,7 @@ if (!defined('PHPEXCEL_ROOT')) {
 //         Patch code for user-defined named cells supports single cells only.
 //         NOTE: this patch only works for BIFF8 as BIFF5-7 use a different
 //         external sheet reference structure
+#[\AllowDynamicProperties]
 class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExcel_Reader_IReader
 {
     // ParseXL definitions
@@ -4616,7 +4617,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                     $offset += 4;
                     // offset: var; size: $us; character array of the URL, no Unicode string header, always 16-bit characters, zero-terminated
                     $url = self::encodeUTF16(substr($recordData, $offset, $us - 2), false);
-                    $nullOffset = strpos($url, 0x00);
+                    $nullOffset = strpos($url, chr(0));
                     if ($nullOffset) {
                         $url = substr($url, 0, $nullOffset);
                     }

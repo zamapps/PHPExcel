@@ -49,6 +49,7 @@ if (!defined('CALCULATION_REGEXP_CELLREF')) {
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
  * @version    ##VERSION##, ##DATE##
  */
+#[\AllowDynamicProperties]
 class PHPExcel_Calculation
 {
     /** Constants                */
@@ -2063,7 +2064,7 @@ class PHPExcel_Calculation
     private static $controlFunctions = array(
         'MKMATRIX' => array(
             'argumentCount' => '*',
-            'functionCall' => 'self::mkMatrix'
+            'functionCall' => 'PHPExcel_Calculation::mkMatrix'
         )
     );
 
@@ -3212,7 +3213,7 @@ class PHPExcel_Calculation
                     }
                 }
                 $d = $stack->last(2);
-                if (preg_match('/^'.self::CALCULATION_REGEXP_FUNCTION.'$/i', $d['value'], $matches)) {    //    Did this parenthesis just close a function?
+                if ($d !== null && preg_match('/^'.self::CALCULATION_REGEXP_FUNCTION.'$/i', $d['value'], $matches)) {    //    Did this parenthesis just close a function?
                     $functionName = $matches[1];                                        //    Get the function name
 //echo 'Closed Function is '.$functionName, PHP_EOL;
                     $d = $stack->pop();
@@ -3300,7 +3301,7 @@ class PHPExcel_Calculation
                 }
                 // make sure there was a function
                 $d = $stack->last(2);
-                if (!preg_match('/^'.self::CALCULATION_REGEXP_FUNCTION.'$/i', $d['value'], $matches)) {
+                if ($d === null || !preg_match('/^'.self::CALCULATION_REGEXP_FUNCTION.'$/i', $d['value'], $matches)) {
                     return $this->raiseFormulaError("Formula Error: Unexpected ,");
                 }
                 $d = $stack->pop();
@@ -3346,7 +3347,7 @@ class PHPExcel_Calculation
 
                     //    If the last entry on the stack was a : operator, then we have a cell range reference
                     $testPrevOp = $stack->last(1);
-                    if ($testPrevOp['value'] == ':') {
+                    if ($testPrevOp !== null && $testPrevOp['value'] == ':') {
                         //    If we have a worksheet reference, then we're playing with a 3D reference
                         if ($matches[2] == '') {
                             //    Otherwise, we 'inherit' the worksheet reference from the start cell reference
@@ -3367,7 +3368,7 @@ class PHPExcel_Calculation
 //                    echo 'Element is a Variable, Constant, String, Number or Boolean<br />';
                     //    If the last entry on the stack was a : operator, then we may have a row or column range reference
                     $testPrevOp = $stack->last(1);
-                    if ($testPrevOp['value'] == ':') {
+                    if ($testPrevOp !== null && $testPrevOp['value'] == ':') {
                         $startRowColRef = $output[count($output)-1]['value'];
                         $rangeWS1 = '';
                         if (strpos('!', $startRowColRef) !== false) {
@@ -3497,7 +3498,7 @@ class PHPExcel_Calculation
             $rowKey = array_shift($rKeys);
             $cKeys = array_keys(array_keys($operand[$rowKey]));
             $colKey = array_shift($cKeys);
-            if (ctype_upper($colKey)) {
+            if (is_string($colKey) && ctype_upper($colKey)) {
                 $operandData['reference'] = $colKey.$rowKey;
             }
         }
@@ -3524,7 +3525,7 @@ class PHPExcel_Calculation
             $token = $tokenData['value'];
 //            echo '<b>Token is '.$token.'</b><br />';
             // if the token is a binary operator, pop the top two values off the stack, do the operation, and push the result back on the stack
-            if (isset(self::$binaryOperators[$token])) {
+            if (is_string($token) && isset(self::$binaryOperators[$token])) {
 //                echo 'Token is a binary operator<br />';
                 //    We must have two operands, error if we don't
                 if (($operand2Data = $stack->pop()) === null) {
@@ -4021,7 +4022,7 @@ class PHPExcel_Calculation
                 if ($useLowercaseFirstComparison) {
                     $result = $this->strcmpLowercaseFirst($operand1, $operand2) > 0;
                 } else {
-                    $result = ($operand1 > $operand2);
+                    $result = (self::php7ComparisonOperand($operand1, $operand2) > self::php7ComparisonOperand($operand2, $operand1));
                 }
                 break;
             //    Less than
@@ -4029,7 +4030,7 @@ class PHPExcel_Calculation
                 if ($useLowercaseFirstComparison) {
                     $result = $this->strcmpLowercaseFirst($operand1, $operand2) < 0;
                 } else {
-                    $result = ($operand1 < $operand2);
+                    $result = (self::php7ComparisonOperand($operand1, $operand2) < self::php7ComparisonOperand($operand2, $operand1));
                 }
                 break;
             //    Equality
@@ -4037,7 +4038,7 @@ class PHPExcel_Calculation
                 if (is_numeric($operand1) && is_numeric($operand2)) {
                     $result = (abs($operand1 - $operand2) < $this->delta);
                 } else {
-                    $result = strcmp($operand1, $operand2) == 0;
+                    $result = strcmp((string) $operand1, (string) $operand2) == 0;
                 }
                 break;
             //    Greater than or equal
@@ -4047,7 +4048,7 @@ class PHPExcel_Calculation
                 } elseif ($useLowercaseFirstComparison) {
                     $result = $this->strcmpLowercaseFirst($operand1, $operand2) >= 0;
                 } else {
-                    $result = strcmp($operand1, $operand2) >= 0;
+                    $result = strcmp((string) $operand1, (string) $operand2) >= 0;
                 }
                 break;
             //    Less than or equal
@@ -4057,7 +4058,7 @@ class PHPExcel_Calculation
                 } elseif ($useLowercaseFirstComparison) {
                     $result = $this->strcmpLowercaseFirst($operand1, $operand2) <= 0;
                 } else {
-                    $result = strcmp($operand1, $operand2) <= 0;
+                    $result = strcmp((string) $operand1, (string) $operand2) <= 0;
                 }
                 break;
             //    Inequality
@@ -4065,7 +4066,7 @@ class PHPExcel_Calculation
                 if (is_numeric($operand1) && is_numeric($operand2)) {
                     $result = (abs($operand1 - $operand2) > 1E-14);
                 } else {
-                    $result = strcmp($operand1, $operand2) != 0;
+                    $result = strcmp((string) $operand1, (string) $operand2) != 0;
                 }
                 break;
         }
@@ -4083,6 +4084,21 @@ class PHPExcel_Calculation
      * @param    string    $str2    Second string value for the comparison
      * @return   integer
      */
+    /**
+     * PHP 8 compares a number with a non-numeric string as strings; PHP 7 converted the string to a number.
+     *
+     * @param    mixed    $operand
+     * @param    mixed    $other    The operand it is compared with
+     * @return    mixed
+     */
+    private static function php7ComparisonOperand($operand, $other)
+    {
+        if (is_string($operand) && !is_numeric($operand) && (is_int($other) || is_float($other))) {
+            return (float) $operand;
+        }
+        return $operand;
+    }
+
     private function strcmpLowercaseFirst($str1, $str2)
     {
         $inversedStr1 = PHPExcel_Shared_String::StrCaseReverse($str1);

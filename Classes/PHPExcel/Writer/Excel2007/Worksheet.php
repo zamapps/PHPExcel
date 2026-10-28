@@ -1094,7 +1094,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
                 switch (strtolower($mappedType)) {
                     case 'inlinestr':    // Inline string
                         if (! $cellValue instanceof PHPExcel_RichText) {
-                            $objWriter->writeElement('t', PHPExcel_Shared_String::ControlCharacterPHP2OOXML(htmlspecialchars($cellValue)));
+                            $objWriter->writeElement('t', PHPExcel_Shared_String::ControlCharacterPHP2OOXML(htmlspecialchars($cellValue, ENT_COMPAT)));
                         } elseif ($cellValue instanceof PHPExcel_RichText) {
                             $objWriter->startElement('is');
                             $this->getParentWriter()->getWriterPart('stringtable')->writeRichText($objWriter, $cellValue);
@@ -1114,7 +1114,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
                         break;
                     case 'f':            // Formula
                         $attributes = $pCell->getFormulaAttributes();
-                        if ($attributes['t'] == 'array') {
+                        if ($attributes !== null && $attributes['t'] == 'array') {
                             $objWriter->startElement('f');
                             $objWriter->writeAttribute('t', 'array');
                             $objWriter->writeAttribute('ref', $pCellAddress);

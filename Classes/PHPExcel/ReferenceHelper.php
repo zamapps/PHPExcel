@@ -85,7 +85,7 @@ class PHPExcel_ReferenceHelper
      */
     public static function columnReverseSort($a, $b)
     {
-        return 1 - strcasecmp(strlen($a) . $a, strlen($b) . $b);
+        return -strcasecmp(strlen($a) . $a, strlen($b) . $b);
     }
 
     /**
@@ -121,7 +121,7 @@ class PHPExcel_ReferenceHelper
         sscanf($b, '%[A-Z]%d', $bc, $br);
 
         if ($ar == $br) {
-            return 1 - strcasecmp(strlen($ac) . $ac, strlen($bc) . $bc);
+            return -strcasecmp(strlen($ac) . $ac, strlen($bc) . $bc);
         }
         return ($ar < $br) ? 1 : -1;
     }

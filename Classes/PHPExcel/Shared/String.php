@@ -556,7 +556,7 @@ class PHPExcel_Shared_String
     public static function CountCharacters($value, $enc = 'UTF-8')
     {
         if (self::getIsMbstringEnabled()) {
-            return mb_strlen($value, $enc);
+            return mb_strlen((string) $value, $enc);
         }
 
         if (self::getIsIconvEnabled()) {
@@ -578,7 +578,7 @@ class PHPExcel_Shared_String
     public static function Substring($pValue = '', $pStart = 0, $pLength = 0)
     {
         if (self::getIsMbstringEnabled()) {
-            return mb_substr($pValue, $pStart, $pLength, 'UTF-8');
+            return mb_substr((string) $pValue, $pStart, $pLength, 'UTF-8');
         }
 
         if (self::getIsIconvEnabled()) {
@@ -598,7 +598,7 @@ class PHPExcel_Shared_String
     public static function StrToUpper($pValue = '')
     {
         if (function_exists('mb_convert_case')) {
-            return mb_convert_case($pValue, MB_CASE_UPPER, "UTF-8");
+            return mb_convert_case((string) $pValue, MB_CASE_UPPER, "UTF-8");
         }
         return strtoupper($pValue);
     }
@@ -612,7 +612,7 @@ class PHPExcel_Shared_String
     public static function StrToLower($pValue = '')
     {
         if (function_exists('mb_convert_case')) {
-            return mb_convert_case($pValue, MB_CASE_LOWER, "UTF-8");
+            return mb_convert_case((string) $pValue, MB_CASE_LOWER, "UTF-8");
         }
         return strtolower($pValue);
     }
@@ -627,7 +627,7 @@ class PHPExcel_Shared_String
     public static function StrToTitle($pValue = '')
     {
         if (function_exists('mb_convert_case')) {
-            return mb_convert_case($pValue, MB_CASE_TITLE, "UTF-8");
+            return mb_convert_case((string) $pValue, MB_CASE_TITLE, "UTF-8");
         }
         return ucwords($pValue);
     }

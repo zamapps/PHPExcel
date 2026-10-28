@@ -835,7 +835,7 @@ class PHPExcel_Calculation_Engineering
     {
         if (!is_null($places)) {
             if (strlen($xVal) <= $places) {
-                return substr(str_pad($xVal, $places, '0', STR_PAD_LEFT), -10);
+                return substr(str_pad($xVal, (int) $places, '0', STR_PAD_LEFT), -10);
             } else {
                 return PHPExcel_Calculation_Functions::NaN();
             }

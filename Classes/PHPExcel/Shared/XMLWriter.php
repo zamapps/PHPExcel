@@ -116,7 +116,7 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
         }
 
         if (method_exists($this, 'writeRaw')) {
-            return $this->writeRaw(htmlspecialchars($text));
+            return $this->writeRaw(htmlspecialchars($text, ENT_COMPAT));
         }
 
         return $this->text($text);
